@@ -28,8 +28,11 @@ build/
 # IDE 与系统文件
 .vscode/
 .idea/
+.claude/
 .DS_Store
 Thumbs.db
+__pycache__/
+*.pyc
 
 # npm / pnpm / yarn 日志
 npm-debug.log*
