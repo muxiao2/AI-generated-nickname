@@ -308,6 +308,7 @@ function App() {
   function addFavorite(item) {
     if (favorites.some((fav) => fav.name === item.name)) return;
     persist({ ...store, favorites: [{ ...item, savedAt: new Date().toLocaleString('zh-CN') }, ...favorites] });
+    setNames((current) => current.filter((row) => row.name !== item.name));
   }
 
   function rejectName(item) {
