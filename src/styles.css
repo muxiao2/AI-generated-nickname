@@ -526,6 +526,7 @@ button:hover {
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
+  align-items: start;
   gap: 18px;
   max-width: 1320px;
   margin: 0 auto;
@@ -534,6 +535,19 @@ button:hover {
 .list,
 .side .panel {
   padding: 20px;
+}
+
+.list {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.list-scroll {
+  max-height: min(720px, calc(100vh - 220px));
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
 }
 
 .panel h2 {
@@ -858,6 +872,13 @@ button:hover {
   .stats,
   .card {
     grid-template-columns: 1fr;
+  }
+
+  .list,
+  .list-scroll,
+  .side {
+    max-height: none;
+    overflow: visible;
   }
 
   .hero h1 {

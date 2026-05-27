@@ -439,19 +439,21 @@ function App() {
       <section className="grid">
         <div className="panel list">
           <h2><Star size={20} /> {activeView}昵称</h2>
-          {filteredNames.length === 0 ? <p className="empty">暂无候选，请先生成或调整筛选条件。</p> : filteredNames.map((item) => (
-            <article className="card" key={item.name}>
-              <div>
-                <h3>{item.name}</h3>
-                <p>{item.detail}</p>
-                <p className="usage-source">{item.usageSource || '使用率数据来源：本地规则估算。'}</p>
-              </div>
-              <span className={`badge level-${item.level}`}>{item.level} · {item.total}</span>
-              <span className={`usage usage-${item.usageLevel || '低'}`}>使用率{item.usageLevel || '低'} · {item.usageRate || 0}%</span>
-              {activeView === '喜欢' ? <button onClick={() => removeFavorite(item.name)}><Undo2 size={16} /> 取消喜欢</button> : <button onClick={() => addFavorite(item)}><Heart size={16} /> 喜欢</button>}
-              {activeView === '排除' ? <button onClick={() => removeRejected(item.name)}><Undo2 size={16} /> 取消排除</button> : <button className="danger" onClick={() => rejectName(item)}><ShieldX size={16} /> 排除</button>}
-            </article>
-          ))}
+          <div className="list-scroll">
+            {filteredNames.length === 0 ? <p className="empty">暂无候选，请先生成或调整筛选条件。</p> : filteredNames.map((item) => (
+              <article className="card" key={item.name}>
+                <div>
+                  <h3>{item.name}</h3>
+                  <p>{item.detail}</p>
+                  <p className="usage-source">{item.usageSource || '使用率数据来源：本地规则估算。'}</p>
+                </div>
+                <span className={`badge level-${item.level}`}>{item.level} · {item.total}</span>
+                <span className={`usage usage-${item.usageLevel || '低'}`}>使用率{item.usageLevel || '低'} · {item.usageRate || 0}%</span>
+                {activeView === '喜欢' ? <button onClick={() => removeFavorite(item.name)}><Undo2 size={16} /> 取消喜欢</button> : <button onClick={() => addFavorite(item)}><Heart size={16} /> 喜欢</button>}
+                {activeView === '排除' ? <button onClick={() => removeRejected(item.name)}><Undo2 size={16} /> 取消排除</button> : <button className="danger" onClick={() => rejectName(item)}><ShieldX size={16} /> 排除</button>}
+              </article>
+            ))}
+          </div>
         </div>
 
         <aside className="side">
