@@ -86,7 +86,7 @@ select:focus-visible {
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 1fr;
   align-items: start;
   gap: 28px;
   max-width: 1320px;
@@ -97,6 +97,8 @@ select:focus-visible {
 .hero-copy {
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
   border: 1px solid var(--line);
   border-radius: 34px;
   padding: clamp(24px, 4vw, 42px);
@@ -131,8 +133,10 @@ select:focus-visible {
 }
 
 .hero-actions {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
+  justify-content: flex-end;
 }
 
 .hero h1 {
@@ -141,7 +145,7 @@ select:focus-visible {
   max-width: 880px;
   margin: 0 0 18px;
   color: var(--ink);
-  font-size: clamp(36px, 6vw, 78px);
+  font-size: clamp(36px, 5.2vw, 72px);
   line-height: 1.02;
   letter-spacing: -3px;
   text-wrap: balance;
@@ -315,6 +319,8 @@ select:focus-visible {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(154px, 1fr));
   gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
   max-width: 1320px;
   margin: 0 auto 18px;
   padding: 18px;
@@ -326,6 +332,8 @@ select:focus-visible {
   grid-template-columns: minmax(240px, 1.2fr) repeat(auto-fit, minmax(140px, 1fr));
   align-items: end;
   gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
   max-width: 1320px;
   margin: 0 auto 18px;
   padding: 18px;
@@ -333,10 +341,12 @@ select:focus-visible {
 }
 
 .modebar {
-  display: inline-grid;
+  display: grid;
   grid-template-columns: repeat(2, minmax(120px, 1fr));
   gap: 8px;
-  width: min(360px, calc(100% - 32px));
+  width: 100%;
+  max-width: 1320px;
+  box-sizing: border-box;
   margin: 0 auto 18px;
   padding: 8px;
 }
@@ -891,7 +901,7 @@ button:hover {
   }
 
   .hero-actions {
-    grid-template-columns: 1fr;
+    justify-content: stretch;
   }
 
   .criteria-card {
