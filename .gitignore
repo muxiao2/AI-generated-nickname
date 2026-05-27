@@ -25,6 +25,7 @@ build/
 *secret*.json
 *key*.json
 远程盒子部署指南.md
+AI_RECORD.md
 
 # IDE 与系统文件
 .vscode/
