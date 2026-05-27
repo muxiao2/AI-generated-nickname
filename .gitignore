@@ -1,0 +1,45 @@
+# 依赖目录
+node_modules/
+
+# 构建产物
+dist/
+build/
+.vite/
+
+# 本地环境变量与密钥
+.env
+.env.*
+!.env.example
+*.local
+
+# 本地数据与导出结果
+*.log
+*.tmp
+*.temp
+*.bak
+*.backup
+昵称筛选结果.json
+*筛选结果*.json
+*本地结果*.json
+*私有*.json
+*secret*.json
+*key*.json
+
+# IDE 与系统文件
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# npm / pnpm / yarn 日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Docker 本地覆盖配置
+docker-compose.override.yml
+
+# 部署工具本地缓存
+.netlify/
+.vercel/
