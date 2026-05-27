@@ -58,6 +58,10 @@ function getRejectedNames(rejected) {
   return rejected.map((item) => (typeof item === 'string' ? item : item.name)).filter(Boolean);
 }
 
+function getSavedNames(rejected, favorites = []) {
+  return [...new Set([...getRejectedNames(rejected), ...favorites.map((item) => item.name).filter(Boolean)])];
+}
+
 function getToneType(char) {
   const level = '妈麻花家云风清初书知春东南西苏栀安宁星青听舟川汐霜秋';
   const oblique = '月雪雨浅澜岚晚梦鹿鹤墨锦念沐洛棠瑾瑜若夜凛烬渡野序';
@@ -139,20 +143,20 @@ function makeName(requiredChar, length, pool, index, fixedIndex) {
   return chars.join('');
 }
 
-function generateNicknames({ requiredChar, length, count, style, placement }, rejected) {
+function generateNicknames({ requiredChar, length, count, style, placement }, rejected, favorites = []) {
   const cleanChar = Array.from(requiredChar).find((char) => /[\u4e00-\u9fff]/.test(char)) || '';
   if (!cleanChar) return [];
   const pool = Array.from(uniqueText(getLibrary(style).replaceAll(cleanChar, '')));
   const result = new Map();
-  const rejectedNames = getRejectedNames(rejected);
+  const savedNames = getSavedNames(rejected, favorites);
   const targetCount = Math.max(1, Math.min(Number(count) || 120, 5000));
   const fixedIndexes = placement === '开头' ? [0] : placement === '结尾' ? [length - 1] : Array.from({ length }, (_, index) => index);
-  const maxCombination = Math.min(pool.length ** Math.max(0, length - 1), targetCount + rejectedNames.length + 1000);
+  const maxCombination = Math.min(pool.length ** Math.max(0, length - 1), targetCount + savedNames.length + 1000);
 
   for (const fixedIndex of fixedIndexes) {
     for (let index = 0; index < maxCombination && result.size < targetCount; index += 1) {
       const name = makeName(cleanChar, length, pool, index, fixedIndex);
-      if (/^[\u4e00-\u9fff]+$/.test(name) && !rejectedNames.includes(name) && !violatesCompliance(name)) {
+      if (/^[\u4e00-\u9fff]+$/.test(name) && !savedNames.includes(name) && !violatesCompliance(name)) {
         result.set(name, { name, ...scoreNickname(name, cleanChar, style) });
       }
     }
@@ -161,7 +165,7 @@ function generateNicknames({ requiredChar, length, count, style, placement }, re
   return Array.from(result.values()).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'zh-Hans-CN'));
 }
 
-function buildAiPrompt({ requiredChar, length, count, style, placement }, rejected) {
+function buildAiPrompt({ requiredChar, length, count, style, placement }, rejected, favorites = []) {
   return `你是中文昵称生成与评估助手。请严格根据以下评判标准生成昵称：${AI_CRITERIA_PROMPT}
 生成要求：
 1. 只返回纯汉字昵称，不要包含字母、数字、符号、表情。
@@ -169,19 +173,19 @@ function buildAiPrompt({ requiredChar, length, count, style, placement }, reject
 3. 昵称长度必须是${length}个汉字。
 4. 风格为“${style}”，指定汉字位置为“${placement}”。
 5. 不得出现低俗、违规、敏感、仿冒机构或法律法规禁止内容。
-6. 避开这些已排除昵称：${getRejectedNames(rejected).slice(0, 200).join('、') || '无'}。
+6. 避开这些已排除或已喜欢昵称：${getSavedNames(rejected, favorites).slice(0, 200).join('、') || '无'}。
 7. 生成${Math.min(Number(count) || 20, 80)}个候选。
 8. 请根据你的通用语料认知、常见昵称构成、公开网络常见度经验，为每个昵称估算使用率百分比和高/中/低等级；这是 AI 估算，不代表真实全网注册数量。
 返回格式必须是 JSON 数组，不要输出 Markdown。每项格式：
 {"name":"昵称","total":88,"level":"A","detail":"读音xx/30，视觉xx/25，意境xx/30，实用xx/15。","reason":"简短说明","usageRate":42,"usageLevel":"中","usageSource":"AI基于通用语料认知和常见昵称模式估算"}`;
 }
 
-function parseAiNames(text, style) {
+function parseAiNames(text, style, savedNames = []) {
   const cleanText = text.replace(/```json|```/g, '').trim();
   const parsed = JSON.parse(cleanText);
   if (!Array.isArray(parsed)) return [];
   return parsed
-    .filter((item) => item && /^[\u4e00-\u9fff]+$/.test(item.name || '') && !violatesCompliance(item.name))
+    .filter((item) => item && /^[\u4e00-\u9fff]+$/.test(item.name || '') && !savedNames.includes(item.name) && !violatesCompliance(item.name))
     .map((item) => {
       const localUsage = estimateUsage(item.name, style);
       const aiUsageRate = Number(item.usageRate);
@@ -257,7 +261,7 @@ function App() {
   }
 
   function handleGenerate() {
-    const nextNames = generateNicknames(form, rejected);
+    const nextNames = generateNicknames(form, rejected, favorites);
     const session = { time: new Date().toLocaleString('zh-CN'), form, total: nextNames.length };
     persist({ ...store, sessions: [session, ...(store.sessions || [])].slice(0, 20) });
     setNames(nextNames);
@@ -282,7 +286,7 @@ function App() {
           model: aiConfig.model,
           messages: [
             { role: 'system', content: '你只输出 JSON，不输出 Markdown，不解释过程。' },
-            { role: 'user', content: buildAiPrompt(form, rejected) },
+            { role: 'user', content: buildAiPrompt(form, rejected, favorites) },
           ],
           temperature: 0.8,
         }),
@@ -290,7 +294,7 @@ function App() {
       if (!response.ok) throw new Error(`AI 接口请求失败：${response.status}`);
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content || '';
-      const nextNames = parseAiNames(content, form.style).slice(0, Math.min(Number(form.count) || 20, 80));
+      const nextNames = parseAiNames(content, form.style, getSavedNames(rejected, favorites)).slice(0, Math.min(Number(form.count) || 20, 80));
       const session = { time: new Date().toLocaleString('zh-CN'), form: { ...form, source: 'AI生成' }, total: nextNames.length };
       persist({ ...store, aiConfig, sessions: [session, ...(store.sessions || [])].slice(0, 20) });
       setNames(nextNames);
