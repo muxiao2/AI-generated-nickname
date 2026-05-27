@@ -24,6 +24,7 @@ build/
 *私有*.json
 *secret*.json
 *key*.json
+远程盒子部署指南.md
 
 # IDE 与系统文件
 .vscode/
