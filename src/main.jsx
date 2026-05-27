@@ -212,6 +212,7 @@ function App() {
   const [aiConfig, setAiConfig] = useState(store.aiConfig || DEFAULT_AI_CONFIG);
   const [aiStatus, setAiStatus] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [generateMode, setGenerateMode] = useState(store.generateMode || '本地生成');
   const favorites = store.favorites || [];
   const rejected = store.rejected || [];
   const rejectedItems = rejected.map((item) => (typeof item === 'string' ? { name: item, total: 0, level: 'D', detail: '历史排除记录。' } : item));
@@ -248,6 +249,11 @@ function App() {
     const nextConfig = { ...aiConfig, provider, ...AI_PRESETS[provider] };
     setAiConfig(nextConfig);
     persist({ ...store, aiConfig: nextConfig });
+  }
+
+  function switchGenerateMode(mode) {
+    setGenerateMode(mode);
+    persist({ ...store, generateMode: mode });
   }
 
   function handleGenerate() {
@@ -377,27 +383,38 @@ function App() {
         </div>
       </section>
 
-      <section className="panel controls">
-        <label>指定汉字<input value={form.requiredChar} maxLength={2} onChange={(event) => updateForm('requiredChar', event.target.value)} /></label>
-        <label>昵称字数<input type="number" min="2" max="6" value={form.length} onChange={(event) => updateForm('length', Number(event.target.value))} /></label>
-        <label>生成数量<input type="number" min="20" max="5000" value={form.count} onChange={(event) => updateForm('count', Number(event.target.value))} /></label>
-        <label>风格<select value={form.style} onChange={(event) => updateForm('style', event.target.value)}><option>古风</option><option>清冷</option><option>可爱</option><option>综合</option></select></label>
-        <label>汉字位置<select value={form.placement} onChange={(event) => updateForm('placement', event.target.value)}><option>任意</option><option>开头</option><option>结尾</option></select></label>
-        <button className="primary" onClick={handleGenerate}><RefreshCw size={18} /> 生成并评分</button>
+      <section className="panel modebar">
+        {['本地生成', 'AI生成'].map((mode) => <button key={mode} className={generateMode === mode ? 'tab active' : 'tab'} onClick={() => switchGenerateMode(mode)}>{mode}</button>)}
       </section>
 
-      <section className="panel ai-panel">
-        <div>
-          <h2><Sparkles size={20} /> AI 生成配置</h2>
-          <p>支持 OpenAI 兼容接口与 DeepSeek，根据新的 `评判标准.md` 生成候选昵称。API Key 仅保存在当前浏览器本地。</p>
-        </div>
-        <label>AI 服务<select value={aiConfig.provider || 'DeepSeek'} onChange={(event) => switchAiProvider(event.target.value)}><option>DeepSeek</option><option>OpenAI</option></select></label>
-        <label>API 地址<input value={aiConfig.endpoint} onChange={(event) => updateAiConfig('endpoint', event.target.value)} /></label>
-        <label>模型名<input value={aiConfig.model} onChange={(event) => updateAiConfig('model', event.target.value)} /></label>
-        <label>API Key<input type="password" value={aiConfig.apiKey} onChange={(event) => updateAiConfig('apiKey', event.target.value)} /></label>
-        <button className="primary" onClick={handleAiGenerate} disabled={isAiLoading}><Sparkles size={18} /> {isAiLoading ? 'AI 生成中' : 'AI 生成'}</button>
-        {aiStatus && <p className="ai-status">{aiStatus}</p>}
-      </section>
+      {generateMode === '本地生成' ? (
+        <section className="panel controls">
+          <label>指定汉字<input value={form.requiredChar} maxLength={2} onChange={(event) => updateForm('requiredChar', event.target.value)} /></label>
+          <label>昵称字数<input type="number" min="2" max="6" value={form.length} onChange={(event) => updateForm('length', Number(event.target.value))} /></label>
+          <label>生成数量<input type="number" min="20" max="5000" value={form.count} onChange={(event) => updateForm('count', Number(event.target.value))} /></label>
+          <label>风格<select value={form.style} onChange={(event) => updateForm('style', event.target.value)}><option>古风</option><option>清冷</option><option>可爱</option><option>综合</option></select></label>
+          <label>汉字位置<select value={form.placement} onChange={(event) => updateForm('placement', event.target.value)}><option>任意</option><option>开头</option><option>结尾</option></select></label>
+          <button className="primary" onClick={handleGenerate}><RefreshCw size={18} /> 生成并评分</button>
+        </section>
+      ) : (
+        <section className="panel ai-panel">
+          <div>
+            <h2><Sparkles size={20} /> AI 生成配置</h2>
+            <p>支持 OpenAI 兼容接口与 DeepSeek，根据新的 `评判标准.md` 生成候选昵称。API Key 仅保存在当前浏览器本地。</p>
+          </div>
+          <label>指定汉字<input value={form.requiredChar} maxLength={2} onChange={(event) => updateForm('requiredChar', event.target.value)} /></label>
+          <label>昵称字数<input type="number" min="2" max="6" value={form.length} onChange={(event) => updateForm('length', Number(event.target.value))} /></label>
+          <label>生成数量<input type="number" min="20" max="5000" value={form.count} onChange={(event) => updateForm('count', Number(event.target.value))} /></label>
+          <label>风格<select value={form.style} onChange={(event) => updateForm('style', event.target.value)}><option>古风</option><option>清冷</option><option>可爱</option><option>综合</option></select></label>
+          <label>汉字位置<select value={form.placement} onChange={(event) => updateForm('placement', event.target.value)}><option>任意</option><option>开头</option><option>结尾</option></select></label>
+          <label>AI 服务<select value={aiConfig.provider || 'DeepSeek'} onChange={(event) => switchAiProvider(event.target.value)}><option>DeepSeek</option><option>OpenAI</option></select></label>
+          <label>API 地址<input value={aiConfig.endpoint} onChange={(event) => updateAiConfig('endpoint', event.target.value)} /></label>
+          <label>模型名<input value={aiConfig.model} onChange={(event) => updateAiConfig('model', event.target.value)} /></label>
+          <label>API Key<input type="password" value={aiConfig.apiKey} onChange={(event) => updateAiConfig('apiKey', event.target.value)} /></label>
+          <button className="primary" onClick={handleAiGenerate} disabled={isAiLoading}><Sparkles size={18} /> {isAiLoading ? 'AI 生成中' : 'AI 生成'}</button>
+          {aiStatus && <p className="ai-status">{aiStatus}</p>}
+        </section>
+      )}
 
       <section className="stats">
         <div><strong>{names.length}</strong><span>本轮候选</span></div>

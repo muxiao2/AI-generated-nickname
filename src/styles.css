@@ -323,13 +323,22 @@ select:focus-visible {
 
 .ai-panel {
   display: grid;
-  grid-template-columns: minmax(220px, 1.2fr) minmax(120px, 0.7fr) repeat(3, minmax(140px, 1fr)) auto;
+  grid-template-columns: minmax(240px, 1.2fr) repeat(auto-fit, minmax(140px, 1fr));
   align-items: end;
   gap: 14px;
   max-width: 1320px;
   margin: 0 auto 18px;
   padding: 18px;
   animation: rise-in 0.6s 0.07s ease both;
+}
+
+.modebar {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 8px;
+  width: min(360px, calc(100% - 32px));
+  margin: 0 auto 18px;
+  padding: 8px;
 }
 
 .ai-panel h2 {
