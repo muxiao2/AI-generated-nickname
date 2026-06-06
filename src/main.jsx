@@ -180,6 +180,19 @@ function buildAiPrompt({ requiredChar, length, count, style, placement }, reject
 {"name":"昵称","total":88,"level":"A","detail":"读音xx/30，视觉xx/25，意境xx/30，实用xx/15。","reason":"简短说明","usageRate":42,"usageLevel":"中","usageSource":"AI基于通用语料认知和常见昵称模式估算"}`;
 }
 
+function isValidAiEndpoint(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
+    const hostname = parsed.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') return false;
+    if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(hostname)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function parseAiNames(text, style, savedNames = []) {
   const cleanText = text.replace(/```json|```/g, '').trim();
   const parsed = JSON.parse(cleanText);
@@ -271,6 +284,10 @@ function App() {
   async function handleAiGenerate() {
     if (!aiConfig.endpoint || !aiConfig.model || !aiConfig.apiKey) {
       setAiStatus('请先填写 AI API 地址、模型名和 API Key。');
+      return;
+    }
+    if (!isValidAiEndpoint(aiConfig.endpoint)) {
+      setAiStatus('API 地址无效，仅支持 HTTPS/HTTP 公网地址。');
       return;
     }
     setIsAiLoading(true);

@@ -1,15 +1,15 @@
 {
   "scripts": {
-    "dev": "vite --host 0.0.0.0 --port 5173",
+    "dev": "vite --host 127.0.0.1 --port 5173",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0 --port 4173"
+    "preview": "vite preview --host 127.0.0.1 --port 4173"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "lucide-react": "latest"
+    "@vitejs/plugin-react": "^6.0.2",
+    "vite": "^8.0.14",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "lucide-react": "^1.16.0"
   },
   "devDependencies": {}
 }
