@@ -40,7 +40,13 @@ function loadStore() {
 }
 
 function saveStore(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
+  } catch (error) {
+    console.error('保存本地存储失败（可能空间不足或被浏览器禁用）。', error);
+    return false;
+  }
 }
 
 function uniqueText(text) {
@@ -182,7 +188,13 @@ function buildAiPrompt({ requiredChar, length, count, style, placement }, reject
 
 function parseAiNames(text, style, savedNames = []) {
   const cleanText = text.replace(/```json|```/g, '').trim();
-  const parsed = JSON.parse(cleanText);
+  let parsed;
+  try {
+    parsed = JSON.parse(cleanText);
+  } catch (error) {
+    console.warn('AI 返回内容不是有效 JSON，无法解析。', error);
+    return [];
+  }
   if (!Array.isArray(parsed)) return [];
   return parsed
     .filter((item) => item && /^[\u4e00-\u9fff]+$/.test(item.name || '') && !savedNames.includes(item.name) && !violatesCompliance(item.name))
@@ -234,7 +246,9 @@ function App() {
 
   function persist(nextStore) {
     setStore(nextStore);
-    saveStore(nextStore);
+    if (!saveStore(nextStore)) {
+      console.warn('数据已在内存中更新，但未能写入本地存储。下次刷新页面数据可能丢失。');
+    }
   }
 
   function switchTheme() {
@@ -294,7 +308,15 @@ function App() {
       if (!response.ok) throw new Error(`AI 接口请求失败：${response.status}`);
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content || '';
+      if (!content) {
+        setAiStatus('AI 返回内容为空，请检查模型名和 API 配置。');
+        return;
+      }
       const nextNames = parseAiNames(content, form.style, getSavedNames(rejected, favorites)).slice(0, Math.min(Number(form.count) || 20, 80));
+      if (nextNames.length === 0) {
+        setAiStatus('AI 返回的内容无法解析为有效昵称，请重试或检查模型配置。');
+        return;
+      }
       const session = { time: new Date().toLocaleString('zh-CN'), form: { ...form, source: 'AI生成' }, total: nextNames.length };
       persist({ ...store, aiConfig, sessions: [session, ...(store.sessions || [])].slice(0, 20) });
       setNames(nextNames);
@@ -330,14 +352,21 @@ function App() {
   }
 
   function exportData() {
-    const content = JSON.stringify({ favorites, rejected, sessions: store.sessions || [] }, null, 2);
-    const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = '昵称筛选结果.json';
-    link.click();
-    URL.revokeObjectURL(url);
+    let url;
+    try {
+      const content = JSON.stringify({ favorites, rejected, sessions: store.sessions || [] }, null, 2);
+      const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+      url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = '昵称筛选结果.json';
+      link.click();
+    } catch (error) {
+      console.error('导出数据失败。', error);
+      alert('导出失败，请重试。');
+    } finally {
+      if (url) URL.revokeObjectURL(url);
+    }
   }
 
   return (
@@ -476,4 +505,8 @@ function App() {
   );
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error('找不到 #root 元素，请检查 index.html 是否包含 <div id="root"></div>。');
+}
+createRoot(rootElement).render(<App />);
