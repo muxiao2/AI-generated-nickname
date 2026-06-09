@@ -604,6 +604,18 @@ button:hover {
   letter-spacing: 5px;
 }
 
+.pinyin-name ruby {
+  ruby-position: over;
+  ruby-align: center;
+}
+
+.pinyin-name rt {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+
 .card p,
 .empty,
 .mini span {

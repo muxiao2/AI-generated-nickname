@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BookOpenCheck, Download, Heart, History, RefreshCw, Search, ShieldX, Sparkles, Star, Trash2, Undo2 } from 'lucide-react';
+import { pinyin } from 'pinyin-pro';
 import './styles.css';
 
 const ELEGANT_CHARS = '云月星雪雨风清浅澜溪岚烟竹松梅兰荷露霜雾棠栀芷瑾瑜宁安然念初晚秋春夏冬南北西东遥知予书墨青白素锦绾辞梦眠听拾鹿鹤鲸鸢萤梨桃杏茶酒弦歌舟川岛屿森沐禾苏若言微尘光影洛汀汐沫澈宛栖棱檀';
@@ -202,6 +203,15 @@ function parseAiNames(text, style, savedNames = []) {
         usageSource: hasAiUsage ? (item.usageSource || 'AI 基于通用语料认知和常见昵称模式估算，不代表真实全网注册数量。') : localUsage.usageSource,
       };
     });
+}
+
+function PinyinText({ text }) {
+  return Array.from(text).map((char, index) => {
+    if (/[一-鿿]/.test(char)) {
+      return <ruby key={index}>{char}<rp>(</rp><rt>{pinyin(char, { toneType: 'symbol' })}</rt><rp>)</rp></ruby>;
+    }
+    return <span key={index}>{char}</span>;
+  });
 }
 
 function App() {
@@ -443,7 +453,7 @@ function App() {
             {filteredNames.length === 0 ? <p className="empty">暂无候选，请先生成或调整筛选条件。</p> : filteredNames.map((item) => (
               <article className="card" key={item.name}>
                 <div>
-                  <h3>{item.name}</h3>
+                  <h3 className="pinyin-name"><PinyinText text={item.name} /></h3>
                   <p>{item.detail}</p>
                   <p className="usage-source">{item.usageSource || '使用率数据来源：本地规则估算。'}</p>
                 </div>
